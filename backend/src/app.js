@@ -12,10 +12,12 @@ const app = express();
 app.use(
   pinoHttp({
     logger,
+    autoLogging: {
+      ignore: (req) => req.url === "/healthz",
+    },
     redact: ["req.headers.authorization", "req.headers.cookie"],
   }),
 );
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
