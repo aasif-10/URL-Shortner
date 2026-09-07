@@ -1,6 +1,8 @@
 import express from "express";
 import { genShortUrl } from "../utils/shortUrl.js";
 import { prisma } from "../config/db.js";
+import { AppError } from "../errors/AppError.js";
+import { validateUrl } from "../utils/validateUrl.js";
 
 const router = express.Router();
 
@@ -11,6 +13,10 @@ const router = express.Router();
  */
 router.post("/create", async (req, res) => {
   const { url } = req.body;
+  if (!validateUrl(url)) {
+    req.log.error("URL is invalid or missing");
+    throw new AppError("Invalid URL", 400);
+  }
 
   const shortUrl = genShortUrl();
 
@@ -42,7 +48,18 @@ router.get("/:shortUrl", async (req, res) => {
     },
   });
 
+  if (!url) {
+    req.log.error("Short URL not found in database");
+    throw new AppError("Invalid URL", 400);
+  }
+
   const longUrl = url.longUrl;
+
+  await prisma.url.update({
+    where: { id: url.id },
+    data: { clicks: { increment: 1 } },
+  });
+
   res.redirect(longUrl);
 });
 
