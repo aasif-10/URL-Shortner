@@ -1,8 +1,9 @@
 import express from "express";
-import { genShortUrl } from "../utils/shortUrl.js";
+import { genShortUrl } from "../utils/genShortUrl.js";
 import { prisma } from "../config/db.js";
 import { AppError } from "../errors/AppError.js";
 import { validateUrl } from "../utils/validateUrl.js";
+import { isLoggedIn } from "../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
  * @description Create a short URL
  * @access Public
  */
-router.post("/create", async (req, res) => {
+router.post("/create", isLoggedIn, async (req, res) => {
   const { url } = req.body;
   if (!validateUrl(url)) {
     req.log.error("URL is invalid or missing");
@@ -24,6 +25,7 @@ router.post("/create", async (req, res) => {
     data: {
       longUrl: url,
       shortUrl: shortUrl,
+      userId: req.user.userId,
     },
   });
 
