@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { cookieOptions } from "../config/cookies.js";
 import { cfg } from "../config/envConfig.js";
 import * as bcrypt from "bcrypt";
+import { AppError } from "../errors/AppError.js";
 
 const router = express.Router();
 
@@ -15,6 +16,19 @@ const router = express.Router();
  */
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    req.log.error("Missing fields in request body");
+    throw new AppError("Missing required fields", 400);
+  }
+
+  const exists = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (exists) {
+    req.log.error(`User with email ${email} already exists`);
+    throw new AppError("User with this email already exists", 400);
+  }
 
   const hash = await hashPassword(password);
   const user = await prisma.user.create({
@@ -31,6 +45,7 @@ router.post("/register", async (req, res) => {
 
   res.cookie("accessToken", token, cookieOptions);
 
+  req.log.info(`User registered: ${user.email}`);
   res.status(201).json({
     message: "User registered successfully",
     user,
@@ -44,16 +59,25 @@ router.post("/register", async (req, res) => {
  */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
+  if (!email || !password) {
+    req.log.error("Missing email or password in request body");
+    throw new AppError("Missing email or password", 400);
+  }
 
   const user = await prisma.user.findUnique({
     where: {
       email,
     },
   });
+  if (!user) {
+    req.log.error(`User with email ${email} not found`);
+    throw new AppError("Invalid credentials", 404);
+  }
 
   const result = await bcrypt.compare(password, user.password);
   if (!result) {
-    throw new Error("Invalid credentials");
+    req.log.error(`Invalid credentials for user ${email}`);
+    throw new AppError("Invalid credentials", 401);
   }
 
   const token = jwt.sign({ userId: user.id }, cfg.JWT_SECRET, {
@@ -62,6 +86,7 @@ router.post("/login", async (req, res) => {
 
   res.cookie("accessToken", token, cookieOptions);
 
+  req.log.info(`User logged in: ${user.email}`);
   res.status(201).json({
     message: "User logged in successfully",
     user,
@@ -74,7 +99,15 @@ router.post("/login", async (req, res) => {
  * @access Public
  */
 router.get("/logout", (req, res) => {
+  const token = req.cookies.accessToken;
+  if (!token) {
+    req.log.error("No access token found in cookies");
+    throw new AppError("No access token found", 400);
+  }
+
   res.clearCookie("accessToken", cookieOptions);
+
+  req.log.info("User logged out successfully");
   res.status(200).json({
     message: "User logged out successfully",
   });

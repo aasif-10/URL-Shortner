@@ -29,11 +29,10 @@ router.post("/create", isLoggedIn, async (req, res) => {
     },
   });
 
+  req.log.info("short url created");
   res.status(201).json({
     createdUrl,
   });
-
-  req.log.info("short url created");
 });
 
 /**
@@ -62,6 +61,7 @@ router.get("/:shortUrl", async (req, res) => {
     data: { clicks: { increment: 1 } },
   });
 
+  req.log.info(`Redirecting to long URL: ${longUrl}`);
   res.redirect(longUrl);
 });
 
