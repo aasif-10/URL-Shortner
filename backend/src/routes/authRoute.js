@@ -1,11 +1,12 @@
 import express from "express";
 import { prisma } from "../config/db.js";
-import { hashPassword } from "../utils/hashPassword.js";
+import { hashValue } from "../utils/hashValue.js";
 import jwt from "jsonwebtoken";
 import { cookieOptions } from "../config/cookies.js";
 import { cfg } from "../config/envConfig.js";
 import * as bcrypt from "bcrypt";
 import { AppError } from "../errors/AppError.js";
+import { isLoggedIn } from "../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -27,28 +28,44 @@ router.post("/register", async (req, res) => {
   });
   if (exists) {
     req.log.error(`User with email ${email} already exists`);
-    throw new AppError("User with this email already exists", 400);
+    throw new AppError("User with this email already exists", 409);
   }
 
-  const hash = await hashPassword(password);
+  const hashedPass = await hashValue(password);
   const user = await prisma.user.create({
     data: {
       name,
       email,
-      password: hash,
+      password: hashedPass,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
     },
   });
 
-  const token = jwt.sign({ userId: user.id }, cfg.JWT_SECRET, {
-    expiresIn: "7d",
+  const accessToken = jwt.sign({ userId: user.id }, cfg.JWT_SECRET, {
+    expiresIn: "5m",
   });
 
-  res.cookie("accessToken", token, cookieOptions);
+  const refreshToken = jwt.sign({ userId: user.id }, cfg.JWT_SECRET, {
+    expiresIn: "5d",
+  });
+  const hashedRefToken = await hashValue(refreshToken);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken: hashedRefToken },
+  });
+
+  res.cookie("accessToken", accessToken, cookieOptions);
 
   req.log.info(`User registered: ${user.email}`);
   res.status(201).json({
     message: "User registered successfully",
     user,
+    refreshToken,
   });
 });
 
@@ -71,7 +88,7 @@ router.post("/login", async (req, res) => {
   });
   if (!user) {
     req.log.error(`User with email ${email} not found`);
-    throw new AppError("Invalid credentials", 404);
+    throw new AppError("Invalid credentials", 401);
   }
 
   const result = await bcrypt.compare(password, user.password);
@@ -80,30 +97,42 @@ router.post("/login", async (req, res) => {
     throw new AppError("Invalid credentials", 401);
   }
 
-  const token = jwt.sign({ userId: user.id }, cfg.JWT_SECRET, {
-    expiresIn: "7d",
+  const accessToken = jwt.sign({ userId: user.id }, cfg.JWT_SECRET, {
+    expiresIn: "5m",
   });
 
-  res.cookie("accessToken", token, cookieOptions);
+  const refreshToken = jwt.sign({ userId: user.id }, cfg.JWT_SECRET, {
+    expiresIn: "5d",
+  });
+  const hashedRefToken = await hashValue(refreshToken);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken: hashedRefToken },
+  });
+
+  res.cookie("accessToken", accessToken, cookieOptions);
 
   req.log.info(`User logged in: ${user.email}`);
-  res.status(201).json({
+  res.status(200).json({
     message: "User logged in successfully",
-    user,
+    user: { id: user.id, name: user.name, email: user.email },
+    refreshToken,
   });
 });
 
 /**
  * @route GET /api/auth/logout
  * @description Logout a user
- * @access Public
+ * @access Private
  */
-router.get("/logout", (req, res) => {
-  const token = req.cookies.accessToken;
-  if (!token) {
-    req.log.error("No access token found in cookies");
-    throw new AppError("No access token found", 400);
-  }
+router.get("/logout", isLoggedIn, async (req, res) => {
+  const user = req.user;
+
+  await prisma.user.update({
+    where: { id: user.userId },
+    data: { refreshToken: null },
+  });
 
   res.clearCookie("accessToken", cookieOptions);
 
@@ -111,6 +140,39 @@ router.get("/logout", (req, res) => {
   res.status(200).json({
     message: "User logged out successfully",
   });
+});
+
+/**
+ * @route POST /api/auth/refresh
+ * @description Refresh access token using refresh token
+ * @access Public
+ */
+router.post("/refresh", async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    throw new AppError("Refresh token is required", 400);
+  }
+
+  const decoded = jwt.verify(refreshToken, cfg.JWT_SECRET);
+  const userId = decoded.userId;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user || !user.refreshToken) {
+    throw new AppError("Invalid refresh token", 401);
+  }
+
+  const result = await bcrypt.compare(refreshToken, user.refreshToken);
+  if (!result) {
+    throw new AppError("Invalid refresh token", 401);
+  }
+
+  const accessToken = jwt.sign({ userId: userId }, cfg.JWT_SECRET, {
+    expiresIn: "5m",
+  });
+  res.cookie("accessToken", accessToken);
+  res.status(200).json({ message: "Access token refreshed successfully" });
 });
 
 export { router };

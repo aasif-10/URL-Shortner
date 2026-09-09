@@ -8,9 +8,9 @@ const isLoggedIn = (req, res, next) => {
     req.log.error("No access token found in cookies");
     throw new AppError("Unauthorized", 401);
   }
-
+  let decoded;
   try {
-    const decoded = jwt.verify(token, cfg.JWT_SECRET);
+    decoded = jwt.verify(token, cfg.JWT_SECRET);
     req.user = decoded;
   } catch (err) {
     req.log.error("Invalid access token");
