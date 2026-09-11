@@ -4,15 +4,16 @@ import { prisma } from "../config/db.js";
 import { AppError } from "../errors/AppError.js";
 import { validateUrl } from "../utils/validateUrl.js";
 import { isLoggedIn } from "../middlewares/auth.js";
+import { cfg } from "../config/env.js";
 
 const router = express.Router();
 
 /**
- * @route POST /url
+ * @route POST /api/urls/create
  * @description Create a short URL
  * @access Public
  */
-router.post("/create", isLoggedIn, async (req, res) => {
+router.post("/create", async (req, res) => {
   const { url } = req.body;
   if (!validateUrl(url)) {
     req.log.error("URL is invalid or missing");
@@ -24,8 +25,8 @@ router.post("/create", isLoggedIn, async (req, res) => {
   const createdUrl = await prisma.url.create({
     data: {
       longUrl: url,
-      shortUrl: shortUrl,
-      userId: req.user.userId,
+      shortUrl: `${cfg.BASE_URL}/api/urls/${shortUrl}`,
+      userId: "185f4c21-d7ed-4e42-ba5f-4a9eb15bad97", // Replace with actual user ID from authentication
     },
   });
 
@@ -36,7 +37,66 @@ router.post("/create", isLoggedIn, async (req, res) => {
 });
 
 /**
- * @route GET /url/:url
+ * @route GET /api/urls
+ * @description Get all URLs for a user
+ * @access Private
+ */
+router.get("/", async (req, res) => {
+  const userId = "185f4c21-d7ed-4e42-ba5f-4a9eb15bad97";
+
+  const urls = await prisma.url.findMany({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (!urls) {
+    return res.status(200).json({
+      urls: [],
+    });
+  }
+
+  req.log.info(`Retrieved URLs for user: ${userId}`);
+  res.status(200).json({
+    urls,
+  });
+});
+
+/**
+ * @route GET /api/urls/stats
+ * @description Get total clicks and total records for a user
+ * @access Private
+ */
+router.get("/stats", async (req, res) => {
+  const userId = "185f4c21-d7ed-4e42-ba5f-4a9eb15bad97";
+
+  const totalClicks = await prisma.url.aggregate({
+    _sum: {
+      clicks: true,
+    },
+    where: {
+      userId: userId,
+    },
+  });
+
+  const totalRecords = await prisma.url.count({
+    where: {
+      userId: userId,
+    },
+  });
+
+  req.log.info(`Retrieved stats for user: ${userId}`);
+  res.status(200).json({
+    totalClicks: totalClicks._sum.clicks || 0,
+    totalLinks: totalRecords,
+  });
+});
+
+/**
+ * @route GET /api/urls/:shortUrl
  * @description Get the long URL for a given short URL
  * @access Public
  */
@@ -45,7 +105,7 @@ router.get("/:shortUrl", async (req, res) => {
 
   const url = await prisma.url.findUnique({
     where: {
-      shortUrl: shortUrl,
+      shortUrl: `${cfg.BASE_URL}/api/urls/${shortUrl}`,
     },
   });
 

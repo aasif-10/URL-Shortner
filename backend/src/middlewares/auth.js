@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { cfg } from "../config/envConfig.js";
+import { cfg } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
 
 const isLoggedIn = (req, res, next) => {

@@ -3,7 +3,7 @@ import { prisma } from "../config/db.js";
 import { hashValue } from "../utils/hashValue.js";
 import jwt from "jsonwebtoken";
 import { cookieOptions } from "../config/cookies.js";
-import { cfg } from "../config/envConfig.js";
+import { cfg } from "../config/env.js";
 import * as bcrypt from "bcrypt";
 import { AppError } from "../errors/AppError.js";
 import { isLoggedIn } from "../middlewares/auth.js";

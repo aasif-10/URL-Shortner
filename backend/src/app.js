@@ -6,6 +6,7 @@ import { router as urlRoute } from "./routes/urlRoute.js";
 import { router as authRoute } from "./routes/authRoute.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 const app = express();
 
@@ -21,9 +22,10 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors());
 
 app.use("/healthz", heatlhzRoute);
-app.use("/api/url", urlRoute);
+app.use("/api/urls", urlRoute);
 app.use("/api/auth", authRoute);
 
 app.use(errorHandler);

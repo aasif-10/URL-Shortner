@@ -1,6 +1,6 @@
 import { app } from "./src/app.js";
 import { prisma } from "./src/config/db.js";
-import { cfg } from "./src/config/envConfig.js";
+import { cfg } from "./src/config/env.js";
 import { logger } from "./src/config/logger.js";
 
 const PORT = cfg.PORT;
