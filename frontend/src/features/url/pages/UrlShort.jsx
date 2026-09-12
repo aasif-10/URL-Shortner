@@ -11,8 +11,9 @@ import {
 } from "../components/icons/Icons.jsx";
 import { useUrl } from "../hooks/useUrl.js";
 import { useEffect, useState } from "react";
+import { useAuth } from "../../auth/hooks/useAuth.js";
+import { useNavigate } from "react-router-dom";
 
-/* ─── Component ──────────────────────────────────────────────── */
 const UrlShort = () => {
   const {
     shortUrl,
@@ -25,13 +26,12 @@ const UrlShort = () => {
     handleGetStats,
   } = useUrl();
 
-  // You will implement your state and handlers here later
+  const { handleLogout } = useAuth();
 
   const [longUrl, setLongUrl] = useState(null);
   const [isCopied, setIsCopied] = useState(null);
   const [showAlias, setShowAlias] = useState(false);
-
-  // Hardcoded UI display variables for you to connect to state
+  let navigate = useNavigate();
   const toast = null;
 
   const handleCopy = async (url) => {
@@ -65,7 +65,15 @@ const UrlShort = () => {
           <span className="us-logo-text">Snip</span>
         </a>
         <div className="us-nav-actions">
-          <button className="us-btn-ghost">Logout</button>
+          <button
+            onClick={async () => {
+              await handleLogout();
+              navigate("/auth/login");
+            }}
+            className="us-btn-ghost"
+          >
+            Logout
+          </button>
         </div>
       </nav>
 
