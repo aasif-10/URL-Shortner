@@ -175,4 +175,22 @@ router.post("/refresh", async (req, res) => {
   res.status(200).json({ message: "Access token refreshed successfully" });
 });
 
+/**
+ * @route GET /api/auth/get-me
+ * @description Get the current logged-in user
+ * @access Private
+ */
+router.get("/get-me", isLoggedIn, async (req, res) => {
+  const user = req.user;
+
+  const foundUser = await prisma.user.findUnique({
+    where: { id: user.userId },
+  });
+  if (!foundUser) {
+    throw new AppError("User not found", 404);
+  }
+
+  res.status(200).json({ user: foundUser });
+});
+
 export { router };

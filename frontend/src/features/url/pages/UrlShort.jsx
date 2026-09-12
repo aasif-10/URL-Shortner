@@ -26,7 +26,7 @@ const UrlShort = () => {
     handleGetStats,
   } = useUrl();
 
-  const { handleLogout } = useAuth();
+  const { handleLogout, handleGetMe } = useAuth();
 
   const [longUrl, setLongUrl] = useState(null);
   const [isCopied, setIsCopied] = useState(null);
@@ -39,6 +39,14 @@ const UrlShort = () => {
     setIsCopied(url);
     setTimeout(() => setIsCopied(null), 2000);
   };
+
+  useEffect(() => {
+    async function getUser() {
+      await handleGetMe();
+    }
+
+    getUser();
+  }, [handleGetMe]);
 
   useEffect(() => {
     async function getStats() {

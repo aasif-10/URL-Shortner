@@ -85,30 +85,30 @@ const styles = `
 `;
 
 const LoadingScreen = () => (
-    <>
-        <style>{styles}</style>
-        <div className="ls-root">
-            <div className="ls-logo">
-                <span className="ls-dot" />
-                <span className="ls-name">Snip</span>
-            </div>
+  <>
+    <style>{styles}</style>
+    <div className="ls-root">
+      <div className="ls-logo">
+        <span className="ls-dot" />
+        <span className="ls-name">Snip</span>
+      </div>
 
-            <div className="ls-track">
-                <div className="ls-bar" />
-            </div>
+      <div className="ls-track">
+        <div className="ls-bar" />
+      </div>
 
-            <span className="ls-label">Loading</span>
-        </div>
-    </>
+      <span className="ls-label">Loading</span>
+    </div>
+  </>
 );
 
 const Protected = () => {
-    const { user, authIsLoading } = useAuth();
+  const { user, authIsLoading } = useAuth();
 
-    if (authIsLoading) return <LoadingScreen />;
-    if (!user) return <Navigate to="/auth/login" replace />;
+  if (authIsLoading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/auth/login" replace />;
 
-    return <Outlet />;
+  return <Outlet />;
 };
 
 export default Protected;

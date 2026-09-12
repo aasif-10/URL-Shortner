@@ -2,6 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/auth`,
+  withCredentials: true,
 });
 
 const register = async (name, email, password) => {
@@ -35,4 +36,9 @@ const genAccessToken = async (refreshToken) => {
   return response.data;
 };
 
-export { register, login, logout, genAccessToken };
+const getMe = async () => {
+  const response = await api.get("/get-me");
+  return response.data;
+};
+
+export { register, login, logout, genAccessToken, getMe };
