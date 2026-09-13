@@ -7,17 +7,23 @@ import {
   IconArrow,
 } from "../components/icons/Icons";
 import { useAuth } from "../hooks/useAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 /* ─── Component ──────────────────────────────────────────────── */
 const Login = () => {
-  const { authIsLoading, handleLogin } = useAuth();
+  const { authIsLoading, handleLogin, user } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passVisible, setPassVisible] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [navigate, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

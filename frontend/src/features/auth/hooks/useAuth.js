@@ -1,44 +1,46 @@
-import { useContext } from "react";
+import { useContext, useCallback } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { register, login, logout, genAccessToken, getMe } from "../service/api";
+import { register, login, logout, genAccessToken } from "../service/api";
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   const { user, setUser, authIsLoading, setAuthIsLoading } = context;
 
-  const handleRegister = async (name, email, password) => {
-    setAuthIsLoading(true);
-    const data = await register(name, email, password);
-    setUser(data.user);
-    setAuthIsLoading(false);
-  };
+  const handleRegister = useCallback(
+    async (name, email, password) => {
+      setAuthIsLoading(true);
+      const data = await register(name, email, password);
+      setUser(data.user);
+      setAuthIsLoading(false);
+    },
+    [setAuthIsLoading, setUser],
+  );
 
-  const handleLogin = async (email, password) => {
-    setAuthIsLoading(true);
-    const data = await login(email, password);
-    setUser(data.user);
-    setAuthIsLoading(false);
-  };
+  const handleLogin = useCallback(
+    async (email, password) => {
+      setAuthIsLoading(true);
+      const data = await login(email, password);
+      setUser(data.user);
+      setAuthIsLoading(false);
+    },
+    [setAuthIsLoading, setUser],
+  );
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     setAuthIsLoading(true);
     await logout();
     setUser(null);
     setAuthIsLoading(false);
-  };
+  }, [setAuthIsLoading, setUser]);
 
-  const handleGenAccessToken = async (refreshToken) => {
-    setAuthIsLoading(true);
-    await genAccessToken(refreshToken);
-    setAuthIsLoading(false);
-  };
-
-  const handleGetMe = async () => {
-    setAuthIsLoading(true);
-    const data = await getMe();
-    setUser(data.user);
-    setAuthIsLoading(false);
-  };
+  const handleGenAccessToken = useCallback(
+    async (refreshToken) => {
+      setAuthIsLoading(true);
+      await genAccessToken(refreshToken);
+      setAuthIsLoading(false);
+    },
+    [setAuthIsLoading],
+  );
 
   return {
     user,
@@ -49,6 +51,5 @@ export const useAuth = () => {
     handleRegister,
     handleLogout,
     handleGenAccessToken,
-    handleGetMe,
   };
 };

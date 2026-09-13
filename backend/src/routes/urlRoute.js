@@ -13,7 +13,7 @@ const router = express.Router();
  * @description Create a short URL
  * @access Public
  */
-router.post("/create", async (req, res) => {
+router.post("/create", isLoggedIn, async (req, res) => {
   const { url } = req.body;
   if (!validateUrl(url)) {
     req.log.error("URL is invalid or missing");
@@ -26,7 +26,7 @@ router.post("/create", async (req, res) => {
     data: {
       longUrl: url,
       shortUrl: `${cfg.BASE_URL}/api/urls/${shortUrl}`,
-      userId: "185f4c21-d7ed-4e42-ba5f-4a9eb15bad97", // Replace with actual user ID from authentication
+      userId: req.user.userId,
     },
   });
 
@@ -41,8 +41,8 @@ router.post("/create", async (req, res) => {
  * @description Get all URLs for a user
  * @access Private
  */
-router.get("/", async (req, res) => {
-  const userId = "185f4c21-d7ed-4e42-ba5f-4a9eb15bad97";
+router.get("/", isLoggedIn, async (req, res) => {
+  const userId = req.user.userId;
 
   const urls = await prisma.url.findMany({
     where: {
@@ -70,8 +70,8 @@ router.get("/", async (req, res) => {
  * @description Get total clicks and total records for a user
  * @access Private
  */
-router.get("/stats", async (req, res) => {
-  const userId = "185f4c21-d7ed-4e42-ba5f-4a9eb15bad97";
+router.get("/stats", isLoggedIn, async (req, res) => {
+  const userId = req.user.userId;
 
   const totalClicks = await prisma.url.aggregate({
     _sum: {
@@ -92,6 +92,28 @@ router.get("/stats", async (req, res) => {
   res.status(200).json({
     totalClicks: totalClicks._sum.clicks || 0,
     totalLinks: totalRecords,
+  });
+});
+
+/**
+ * @route DELETE /api/urls/:id
+ * @description Delete a URL by ID
+ * @access Private
+ */
+router.delete("/:id", isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+
+  await prisma.url.delete({
+    where: {
+      id: id,
+      userId: userId,
+    },
+  });
+
+  req.log.info(`Deleted URL: ${id} for user: ${userId}`);
+  res.status(200).json({
+    message: "URL deleted successfully",
   });
 });
 

@@ -23,4 +23,9 @@ const getStats = async () => {
   return response.data;
 };
 
-export { createShortUrl, getUrls, getStats };
+const deleteUrl = async (id) => {
+  const response = await api.delete(`/${id}`);
+  return response.data;
+};
+
+export { createShortUrl, getUrls, getStats, deleteUrl };

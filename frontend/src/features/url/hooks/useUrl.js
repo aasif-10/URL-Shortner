@@ -1,6 +1,6 @@
 import { useCallback, useContext } from "react";
 import { UrlContext } from "../context/UrlContext";
-import { createShortUrl, getUrls, getStats } from "../service/api";
+import { createShortUrl, getUrls, getStats, deleteUrl } from "../service/api";
 
 export const useUrl = () => {
   const context = useContext(UrlContext);
@@ -22,9 +22,11 @@ export const useUrl = () => {
       setIsLoading(true);
       const data = await createShortUrl(url);
       setShortUrl(data.shortUrl);
+      setShortUrls((prevShortUrls) => [data, ...prevShortUrls]);
+      setTotalLinks((prevTotalLinks) => prevTotalLinks + 1);
       setIsLoading(false);
     },
-    [setIsLoading, setShortUrl],
+    [setIsLoading, setShortUrl, setShortUrls, setTotalLinks],
   );
 
   const handleGetUrls = useCallback(async () => {
@@ -38,6 +40,16 @@ export const useUrl = () => {
     setTotalClicks(stats.totalClicks);
     setTotalLinks(stats.totalLinks);
   }, [setTotalClicks, setTotalLinks]);
+
+  const handleDeleteUrl = useCallback(async (id) => {
+    setIsLoading(true);
+    await deleteUrl(id);
+    setShortUrls((prevShortUrls) =>
+      prevShortUrls.filter((shortUrlItem) => shortUrlItem.id !== id),
+    );
+    setTotalLinks((prevTotalLinks) => prevTotalLinks - 1);
+    setIsLoading(false);
+  }, [setIsLoading, setShortUrls, setTotalLinks]);
 
   return {
     shortUrl,
@@ -53,5 +65,6 @@ export const useUrl = () => {
     handleCreateShortUrl,
     handleGetUrls,
     handleGetStats,
+    handleDeleteUrl,
   };
 };

@@ -21,12 +21,13 @@ const UrlShort = () => {
     handleCreateShortUrl,
     shortUrls,
     handleGetUrls,
+    handleDeleteUrl,
     totalClicks,
     totalLinks,
     handleGetStats,
   } = useUrl();
 
-  const { handleLogout, handleGetMe } = useAuth();
+  const { handleLogout } = useAuth();
 
   const [longUrl, setLongUrl] = useState(null);
   const [isCopied, setIsCopied] = useState(null);
@@ -40,13 +41,10 @@ const UrlShort = () => {
     setTimeout(() => setIsCopied(null), 2000);
   };
 
-  useEffect(() => {
-    async function getUser() {
-      await handleGetMe();
-    }
-
-    getUser();
-  }, [handleGetMe]);
+  const handleDelete = async (url) => {
+    await handleDeleteUrl(url);
+    await handleGetStats();
+  };
 
   useEffect(() => {
     async function getStats() {
@@ -63,6 +61,26 @@ const UrlShort = () => {
 
     getUrls();
   }, [handleGetUrls]);
+
+  useEffect(() => {
+    let refreshTimeout;
+
+    const refreshStats = () => {
+      refreshTimeout = window.setTimeout(() => {
+        handleGetStats();
+        handleGetUrls();
+      }, 300);
+    };
+
+    window.addEventListener("focus", refreshStats);
+    document.addEventListener("visibilitychange", refreshStats);
+
+    return () => {
+      window.removeEventListener("focus", refreshStats);
+      document.removeEventListener("visibilitychange", refreshStats);
+      window.clearTimeout(refreshTimeout);
+    };
+  }, [handleGetStats, handleGetUrls]);
 
   return (
     <div className="us-page">
@@ -183,6 +201,9 @@ const UrlShort = () => {
               {isCopied === shortUrl ? <IconCheck /> : <IconCopy />}
             </button>
             <a
+              onClick={() => {
+                handleGetStats();
+              }}
               href={shortUrl}
               target="_blank"
               rel="noreferrer"
@@ -274,7 +295,13 @@ const UrlShort = () => {
                         >
                           <IconOpen />
                         </a>
-                        <button className="us-action-btn danger" title="Delete">
+                        <button
+                          onClick={() => {
+                            handleDelete(item.id);
+                          }}
+                          className="us-action-btn danger"
+                          title="Delete"
+                        >
                           <IconTrash />
                         </button>
                       </div>

@@ -8,11 +8,11 @@ import {
   IconArrow,
 } from "../components/icons/Icons";
 import { useAuth } from "../hooks/useAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const { authIsLoading, handleRegister } = useAuth();
+  const { authIsLoading, handleRegister, user } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -25,6 +25,12 @@ const Register = () => {
     await handleRegister(name, email, password);
     navigate("/");
   };
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [navigate, user]);
 
   return (
     <div className="auth-page">
