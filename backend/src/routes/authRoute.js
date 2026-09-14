@@ -7,6 +7,8 @@ import { cfg } from "../config/env.js";
 import * as bcrypt from "bcrypt";
 import { AppError } from "../errors/AppError.js";
 import { isLoggedIn } from "../middlewares/auth.js";
+import { validate } from "../middlewares/validate.js";
+import { loginSchema, registerSchema } from "../validations/auth.validation.js";
 
 const router = express.Router();
 
@@ -15,13 +17,8 @@ const router = express.Router();
  * @description Register a new user
  * @access Public
  */
-router.post("/register", async (req, res) => {
+router.post("/register", validate(registerSchema), async (req, res) => {
   const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    req.log.error("Missing fields in request body");
-    throw new AppError("Missing required fields", 400);
-  }
 
   const exists = await prisma.user.findUnique({
     where: { email },
@@ -74,12 +71,8 @@ router.post("/register", async (req, res) => {
  * @description Login a user
  * @access Public
  */
-router.post("/login", async (req, res) => {
+router.post("/login", validate(loginSchema), async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    req.log.error("Missing email or password in request body");
-    throw new AppError("Missing email or password", 400);
-  }
 
   const user = await prisma.user.findUnique({
     where: {

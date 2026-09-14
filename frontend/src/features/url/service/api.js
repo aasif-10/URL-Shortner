@@ -13,6 +13,13 @@ const createShortUrl = async (url) => {
   return response.data.createdUrl;
 };
 
+const createShortUrlWithSlug = async (url, slug) => {
+  const response = await api.post(`/create/${slug}`, {
+    url,
+  });
+  return response.data.createdUrl;
+};
+
 const getUrls = async () => {
   const response = await api.get("/");
   return response.data.urls;
@@ -28,4 +35,4 @@ const deleteUrl = async (id) => {
   return response.data;
 };
 
-export { createShortUrl, getUrls, getStats, deleteUrl };
+export { createShortUrl, createShortUrlWithSlug, getUrls, getStats, deleteUrl };

@@ -19,7 +19,7 @@ app.use(
     redact: ["req.headers.authorization", "req.headers.cookie"],
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));

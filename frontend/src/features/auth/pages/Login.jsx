@@ -5,6 +5,9 @@ import {
   IconEye,
   IconEyeClosed,
   IconArrow,
+  IconGithub,
+  IconLinkedin,
+  IconGlobe,
 } from "../components/icons/Icons";
 import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
@@ -17,7 +20,13 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passVisible, setPassVisible] = useState(false);
+  const [toast, setToast] = useState(null);
   const navigate = useNavigate();
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     if (user) {
@@ -27,19 +36,35 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await handleLogin(email, password);
-    navigate("/");
+    try {
+      await handleLogin(email, password);
+      navigate("/");
+    } catch (error) {
+      showToast(error.response?.data?.message || "Login failed");
+    }
   };
 
   return (
     <div className="auth-page">
       {/* ── Nav ─────────────────────────────────────────── */}
       <nav className="auth-nav">
-        <a href="/" className="auth-logo">
-          <span className="auth-logo-dot" />
-          <span className="auth-logo-text">Snip</span>
-        </a>
+        <div className="nav-left">
+          <a href="/" className="auth-logo">
+            <span className="auth-logo-dot" />
+            <span className="auth-logo-text">Snip</span>
+          </a>
+          <span className="nav-author-text">Built and maintained by Aasif Khan</span>
+        </div>
         <div className="auth-nav-actions">
+          <a href="https://github.com/aasif-10" target="_blank" rel="noreferrer" className="auth-icon-link" title="GitHub">
+            <IconGithub />
+          </a>
+          <a href="https://www.linkedin.com/in/aasifkhan10/" target="_blank" rel="noreferrer" className="auth-icon-link" title="LinkedIn">
+            <IconLinkedin />
+          </a>
+          <a href="#" target="_blank" rel="noreferrer" className="auth-icon-link" title="Portfolio">
+            <IconGlobe />
+          </a>
           <a href="/auth/register" className="auth-btn-ghost">
             Create account
           </a>
@@ -145,9 +170,6 @@ const Login = () => {
 
       {/* ── Footer ──────────────────────────────────────── */}
       <footer className="auth-footer">
-        <span className="auth-footer-text">
-          © 2026 Snip — All rights reserved
-        </span>
         <div className="auth-footer-links">
           <a href="#" className="auth-footer-link">
             Privacy
@@ -160,6 +182,13 @@ const Login = () => {
           </a>
         </div>
       </footer>
+
+      {/* ── Toast ───────────────────────────────────────── */}
+      {toast && (
+        <div className="us-toast">
+          {toast}
+        </div>
+      )}
     </div>
   );
 };

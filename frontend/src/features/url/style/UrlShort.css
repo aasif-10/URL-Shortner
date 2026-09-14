@@ -57,24 +57,67 @@
 }
 
 .us-logo-text {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #a0a0a0;
+  transition: color 0.2s ease;
+}
+
+.us-logo:hover .us-logo-text {
+  color: #f0f0f0;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-author-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #848484;
+  border-left: 1px solid #333;
+  padding-left: 1.25rem;
+  transition: color 0.2s ease;
+}
+
+.nav-author-text:hover {
+  color: #f0f0f0;
 }
 
 .us-nav-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
+}
+
+.us-icon-link {
+  color: #848484;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, transform 0.2s ease;
+  padding: 0.35rem;
+}
+
+.us-icon-link:hover {
+  color: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.us-icon-link svg {
+  width: 18px;
+  height: 18px;
 }
 
 .us-btn-ghost {
   background: none;
   border: 1px solid #2a2a2a;
-  color: #a0a0a0;
-  font-size: 0.8rem;
+  color: #848484;
+  font-size: 0.85rem;
   font-weight: 500;
   padding: 0.45rem 1rem;
   border-radius: 6px;
@@ -702,15 +745,16 @@
 /* ─── Toast ──────────────────────────────────────────────────── */
 .us-toast {
   position: fixed;
-  bottom: 2rem;
+  top: 2rem;
   left: 50%;
   transform: translateX(-50%) translateY(0);
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
+  background: #4a1515;
+  border: 1px solid #7f1d1d;
   border-radius: 8px;
   padding: 0.7rem 1.1rem;
-  font-size: 0.8rem;
-  color: #c0c0c0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -719,13 +763,7 @@
   white-space: nowrap;
 }
 
-.us-toast-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #5a9e5a;
-  flex-shrink: 0;
-}
+
 
 /* ─── Keyframes ──────────────────────────────────────────────── */
 @keyframes us-fadeUp {
@@ -755,7 +793,7 @@
 @keyframes us-toastIn {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(12px);
+    transform: translateX(-50%) translateY(-12px);
   }
 
   to {

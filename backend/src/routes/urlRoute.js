@@ -37,6 +37,52 @@ router.post("/create", isLoggedIn, async (req, res) => {
 });
 
 /**
+ * @route POST /api/urls/create/:slug
+ * @description Create a short URL with a specific slug
+ * @access Private
+ */
+router.post("/create/:slug", isLoggedIn, async (req, res) => {
+  const { url } = req.body;
+  const { slug } = req.params;
+
+  if (!validateUrl(url)) {
+    req.log.error("URL is invalid or missing");
+    throw new AppError("Invalid URL", 400);
+  }
+
+  if (!slug || slug.trim() === "") {
+    req.log.error("Slug is invalid or missing");
+    throw new AppError("Invalid slug", 400);
+  }
+
+  const shortUrl = `${cfg.BASE_URL}/api/urls/${slug}`;
+
+  const existingUrl = await prisma.url.findUnique({
+    where: {
+      shortUrl: shortUrl,
+    },
+  });
+
+  if (existingUrl) {
+    req.log.error("Short URL already exists");
+    throw new AppError("Short URL already exists", 400);
+  }
+
+  const createdUrl = await prisma.url.create({
+    data: {
+      longUrl: url,
+      shortUrl: shortUrl,
+      userId: req.user.userId,
+    },
+  });
+
+  req.log.info("short url created");
+  res.status(201).json({
+    createdUrl,
+  });
+});
+
+/**
  * @route GET /api/urls
  * @description Get all URLs for a user
  * @access Private

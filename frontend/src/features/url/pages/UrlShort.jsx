@@ -8,6 +8,9 @@ import {
   IconOpen,
   IconPlus,
   IconTrash,
+  IconGithub,
+  IconLinkedin,
+  IconGlobe,
 } from "../components/icons/Icons.jsx";
 import { useUrl } from "../hooks/useUrl.js";
 import { useEffect, useState } from "react";
@@ -19,6 +22,7 @@ const UrlShort = () => {
     shortUrl,
     isLoading,
     handleCreateShortUrl,
+    handleCreateShortUrlWithSlug,
     shortUrls,
     handleGetUrls,
     handleDeleteUrl,
@@ -30,10 +34,38 @@ const UrlShort = () => {
   const { handleLogout } = useAuth();
 
   const [longUrl, setLongUrl] = useState(null);
+  const [alias, setAlias] = useState(null);
   const [isCopied, setIsCopied] = useState(null);
   const [showAlias, setShowAlias] = useState(false);
+  const [toast, setToast] = useState(null);
   let navigate = useNavigate();
-  const toast = null;
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const onLogout = async () => {
+    try {
+      await handleLogout();
+      navigate("/auth/login");
+    } catch (error) {
+      showToast(error.response?.data?.message || "Logout failed");
+    }
+  };
+
+  const handleShortenSubmit = async () => {
+    try {
+      if (showAlias && alias && alias.trim() !== "") {
+        await handleCreateShortUrlWithSlug(longUrl, alias);
+      } else {
+        await handleCreateShortUrl(longUrl);
+      }
+      showToast("URL shortened successfully!");
+    } catch (error) {
+      showToast(error.response?.data?.message || "Failed to shorten URL");
+    }
+  };
 
   const handleCopy = async (url) => {
     await navigator.clipboard.writeText(url);
@@ -42,8 +74,12 @@ const UrlShort = () => {
   };
 
   const handleDelete = async (url) => {
-    await handleDeleteUrl(url);
-    await handleGetStats();
+    try {
+      await handleDeleteUrl(url);
+      await handleGetStats();
+    } catch (error) {
+      showToast(error.response?.data?.message || "Failed to delete URL");
+    }
   };
 
   useEffect(() => {
@@ -86,16 +122,45 @@ const UrlShort = () => {
     <div className="us-page">
       {/* ── Nav ─────────────────────────────────────────── */}
       <nav className="us-nav">
-        <a href="/" className="us-logo">
-          <span className="us-logo-dot" />
-          <span className="us-logo-text">Snip</span>
-        </a>
+        <div className="nav-left">
+          <a href="/" className="us-logo">
+            <span className="us-logo-dot" />
+            <span className="us-logo-text">Snip</span>
+          </a>
+          <span className="nav-author-text">
+            Built and maintained by Aasif Khan
+          </span>
+        </div>
         <div className="us-nav-actions">
+          <a
+            href="https://github.com/aasif-10"
+            target="_blank"
+            rel="noreferrer"
+            className="us-icon-link"
+            title="GitHub"
+          >
+            <IconGithub />
+          </a>
+          <a
+            href="https://www.linkedin.com/in/aasifkhan10/"
+            target="_blank"
+            rel="noreferrer"
+            className="us-icon-link"
+            title="LinkedIn"
+          >
+            <IconLinkedin />
+          </a>
+          <a
+            href="#"
+            target="_blank"
+            rel="noreferrer"
+            className="us-icon-link"
+            title="Portfolio"
+          >
+            <IconGlobe />
+          </a>
           <button
-            onClick={async () => {
-              await handleLogout();
-              navigate("/auth/login");
-            }}
+            onClick={onLogout}
             className="us-btn-ghost"
           >
             Logout
@@ -141,9 +206,7 @@ const UrlShort = () => {
             id="shorten-btn"
             className="us-btn-primary"
             disabled={isLoading}
-            onClick={() => {
-              handleCreateShortUrl(longUrl);
-            }}
+            onClick={handleShortenSubmit}
           >
             {isLoading ? (
               <span className="us-spinner" />
@@ -173,11 +236,15 @@ const UrlShort = () => {
             <span className="us-alias-label">Alias</span>
             <span className="us-alias-prefix">lnk.to/</span>
             <input
+              onChange={(e) => {
+                setAlias(e.target.value);
+              }}
               id="alias-input"
               className="us-alias-input"
               type="text"
               placeholder="my-custom-slug"
               spellCheck={false}
+              value={alias}
             />
           </div>
         )}
@@ -316,9 +383,6 @@ const UrlShort = () => {
 
       {/* ── Footer ──────────────────────────────────────── */}
       <footer className="us-footer">
-        <span className="us-footer-text">
-          © 2026 Snip — All rights reserved
-        </span>
         <div className="us-footer-links">
           <a href="#" className="us-footer-link">
             Privacy
@@ -333,12 +397,7 @@ const UrlShort = () => {
       </footer>
 
       {/* ── Toast ───────────────────────────────────────── */}
-      {toast && (
-        <div className="us-toast">
-          <span className="us-toast-dot" />
-          {toast}
-        </div>
-      )}
+      {toast && <div className="us-toast">{toast}</div>}
     </div>
   );
 };

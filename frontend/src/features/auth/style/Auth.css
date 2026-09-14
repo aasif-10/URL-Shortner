@@ -21,7 +21,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 2.5rem 5rem;
+  padding: 0 2.5rem 2rem;
   animation: auth-fadeUp 0.45s ease both;
 }
 
@@ -57,11 +57,35 @@
 }
 
 .auth-logo-text {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #a0a0a0;
+  transition: color 0.2s ease;
+}
+
+.auth-logo:hover .auth-logo-text {
+  color: #f0f0f0;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-author-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #848484;
+  border-left: 1px solid #333;
+  padding-left: 1.25rem;
+  transition: color 0.2s ease;
+}
+
+.nav-author-text:hover {
+  color: #f0f0f0;
 }
 
 .auth-nav-actions {
@@ -70,12 +94,31 @@
   gap: 0.75rem;
 }
 
+.auth-icon-link {
+  color: #848484;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, transform 0.2s ease;
+  padding: 0.35rem;
+}
+
+.auth-icon-link:hover {
+  color: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.auth-icon-link svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* ─── Ghost Button ───────────────────────────────────────────── */
 .auth-btn-ghost {
   background: none;
   border: 1px solid #2a2a2a;
-  color: #a0a0a0;
-  font-size: 0.8rem;
+  color: #848484;
+  font-size: 0.85rem;
   font-weight: 500;
   padding: 0.45rem 1rem;
   border-radius: 6px;
@@ -360,7 +403,7 @@
 .auth-footer {
   width: 100%;
   max-width: 1160px;
-  margin-top: 4rem;
+  margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #222222;
   display: flex;
@@ -409,7 +452,7 @@
 /* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .auth-page {
-    padding: 0 1.25rem 4rem;
+    padding: 0 1.25rem 2rem;
   }
 
   .auth-center {

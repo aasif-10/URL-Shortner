@@ -8,36 +8,63 @@ export const useAuth = () => {
 
   const handleRegister = useCallback(
     async (name, email, password) => {
-      setAuthIsLoading(true);
-      const data = await register(name, email, password);
-      setUser(data.user);
-      setAuthIsLoading(false);
-    },
-    [setAuthIsLoading, setUser],
+      try {
+        setAuthIsLoading(true);
+        const data = await register(name, email, password);
+        setUser(data.user);
+        setAuthIsLoading(false);
+      } catch (error) {
+        console.error("Register failed: ", error);
+        throw error;
+      } finally {
+        setAuthIsLoading(false);
+      }
+    }, [setAuthIsLoading, setUser],
   );
 
   const handleLogin = useCallback(
     async (email, password) => {
-      setAuthIsLoading(true);
-      const data = await login(email, password);
-      setUser(data.user);
-      setAuthIsLoading(false);
+      try {
+        setAuthIsLoading(true);
+        const data = await login(email, password);
+        setUser(data.user);
+        setAuthIsLoading(false);
+      } catch (error) {
+        console.error("Login failed: ", error);
+        throw error;
+      } finally {
+        setAuthIsLoading(false);
+      }
     },
     [setAuthIsLoading, setUser],
   );
 
   const handleLogout = useCallback(async () => {
-    setAuthIsLoading(true);
-    await logout();
-    setUser(null);
-    setAuthIsLoading(false);
+    try {
+      setAuthIsLoading(true);
+      await logout();
+      setUser(null);
+      setAuthIsLoading(false);
+    } catch (error) {
+      console.error("Logout failed: ", error);
+      throw error;
+    } finally {
+      setAuthIsLoading(false);
+    }
   }, [setAuthIsLoading, setUser]);
 
   const handleGenAccessToken = useCallback(
     async (refreshToken) => {
-      setAuthIsLoading(true);
-      await genAccessToken(refreshToken);
-      setAuthIsLoading(false);
+      try {
+        setAuthIsLoading(true);
+        await genAccessToken(refreshToken);
+        setAuthIsLoading(false);
+      } catch (error) {
+        console.error("Generate access token failed: ", error);
+        throw error;
+      } finally {
+        setAuthIsLoading(false);
+      }
     },
     [setAuthIsLoading],
   );

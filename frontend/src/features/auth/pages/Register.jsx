@@ -6,6 +6,9 @@ import {
   IconEye,
   IconEyeClosed,
   IconArrow,
+  IconGithub,
+  IconLinkedin,
+  IconGlobe,
 } from "../components/icons/Icons";
 import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
@@ -18,12 +21,22 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passVisible, setPassVisible] = useState(true);
+  const [toast, setToast] = useState(null);
   const navigate = useNavigate();
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await handleRegister(name, email, password);
-    navigate("/");
+    try {
+      await handleRegister(name, email, password);
+      navigate("/");
+    } catch (error) {
+      showToast(error.response?.data?.message || "Registration failed");
+    }
   };
 
   useEffect(() => {
@@ -36,11 +49,23 @@ const Register = () => {
     <div className="auth-page">
       {/* ── Nav ─────────────────────────────────────────── */}
       <nav className="auth-nav">
-        <a href="/" className="auth-logo">
-          <span className="auth-logo-dot" />
-          <span className="auth-logo-text">Snip</span>
-        </a>
+        <div className="nav-left">
+          <a href="/" className="auth-logo">
+            <span className="auth-logo-dot" />
+            <span className="auth-logo-text">Snip</span>
+          </a>
+          <span className="nav-author-text">Built and maintained by Aasif Khan</span>
+        </div>
         <div className="auth-nav-actions">
+          <a href="https://github.com/aasif-10" target="_blank" rel="noreferrer" className="auth-icon-link" title="GitHub">
+            <IconGithub />
+          </a>
+          <a href="https://www.linkedin.com/in/aasifkhan10/" target="_blank" rel="noreferrer" className="auth-icon-link" title="LinkedIn">
+            <IconLinkedin />
+          </a>
+          <a href="#" target="_blank" rel="noreferrer" className="auth-icon-link" title="Portfolio">
+            <IconGlobe />
+          </a>
           <a href="/auth/login" className="auth-btn-ghost">
             Sign in
           </a>
@@ -176,9 +201,6 @@ const Register = () => {
 
       {/* ── Footer ──────────────────────────────────────── */}
       <footer className="auth-footer">
-        <span className="auth-footer-text">
-          © 2026 Snip — All rights reserved
-        </span>
         <div className="auth-footer-links">
           <a href="#" className="auth-footer-link">
             Privacy
@@ -191,6 +213,13 @@ const Register = () => {
           </a>
         </div>
       </footer>
+
+      {/* ── Toast ───────────────────────────────────────── */}
+      {toast && (
+        <div className="us-toast">
+          {toast}
+        </div>
+      )}
     </div>
   );
 };
