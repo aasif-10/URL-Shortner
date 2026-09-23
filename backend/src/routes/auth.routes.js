@@ -1,13 +1,13 @@
 import express from "express";
-import { prisma } from "../config/db.js";
-import { hashValue } from "../utils/hashValue.js";
+import { prisma } from "../config/db.config.js";
+import { hashValue } from "../utils/hash-value.util.js";
 import jwt from "jsonwebtoken";
-import { cookieOptions } from "../config/cookies.js";
-import { cfg } from "../config/env.js";
+import { cookieOptions } from "../config/cookie.config.js";
+import { cfg } from "../config/env.config.js";
 import * as bcrypt from "bcrypt";
-import { AppError } from "../errors/AppError.js";
-import { isLoggedIn } from "../middlewares/auth.js";
-import { validate } from "../middlewares/validate.js";
+import { AppError } from "../errors/app.error.js";
+import { isLoggedIn } from "../middlewares/auth.middleware.js";
+import { validate } from "../middlewares/validate.middleware.js";
 import { loginSchema, registerSchema } from "../validations/auth.validation.js";
 
 const router = express.Router();

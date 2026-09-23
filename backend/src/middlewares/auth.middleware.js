@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { cfg } from "../config/env.js";
-import { AppError } from "../errors/AppError.js";
+import { cfg } from "../config/env.config.js";
+import { AppError } from "../errors/app.error.js";
 
 const isLoggedIn = (req, res, next) => {
   const token = req.cookies.accessToken;

@@ -1,7 +1,7 @@
 import { app } from "./src/app.js";
-import { prisma } from "./src/config/db.js";
-import { cfg } from "./src/config/env.js";
-import { logger } from "./src/config/logger.js";
+import { prisma } from "./src/config/db.config.js";
+import { cfg } from "./src/config/env.config.js";
+import { logger } from "./src/config/logger.config.js";
 
 const PORT = cfg.PORT;
 

@@ -1,10 +1,10 @@
 import express from "express";
 import pinoHttp from "pino-http";
-import { logger } from "./config/logger.js";
-import { router as heatlhzRoute } from "./routes/healthz.js";
-import { router as urlRoute } from "./routes/urlRoute.js";
-import { router as authRoute } from "./routes/authRoute.js";
-import { errorHandler } from "./middlewares/errorHandler.js";
+import { logger } from "./config/logger.config.js";
+import { router as heatlhzRoute } from "./routes/healthz.routes.js";
+import { router as urlRoute } from "./routes/url.routes.js";
+import { router as authRoute } from "./routes/auth.routes.js";
+import { errorHandler } from "./middlewares/error-handler.middleware.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 

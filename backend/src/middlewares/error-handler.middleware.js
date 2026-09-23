@@ -1,4 +1,4 @@
-import { AppError } from "../errors/AppError.js";
+import { AppError } from "../errors/app.error.js";
 
 const errorHandler = (error, req, res, next) => {
   req.log.error(error.message);

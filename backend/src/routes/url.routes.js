@@ -1,10 +1,10 @@
 import express from "express";
-import { genShortUrl } from "../utils/genShortUrl.js";
-import { prisma } from "../config/db.js";
-import { AppError } from "../errors/AppError.js";
-import { validateUrl } from "../utils/validateUrl.js";
-import { isLoggedIn } from "../middlewares/auth.js";
-import { cfg } from "../config/env.js";
+import { genShortUrl } from "../utils/gen-short-url.util.js";
+import { prisma } from "../config/db.config.js";
+import { AppError } from "../errors/app.error.js";
+import { validateUrl } from "../utils/validate-url.util.js";
+import { isLoggedIn } from "../middlewares/auth.middleware.js";
+import { cfg } from "../config/env.config.js";
 
 const router = express.Router();
 
