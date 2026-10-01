@@ -2,7 +2,7 @@
 
 A full-stack web application for shortening and managing URLs. Built with Node.js, Express, PostgreSQL, and React.
 
-## Architectur
+## Architecture
 
 The project is structured into two main directories:
 
