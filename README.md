@@ -99,8 +99,6 @@ npm run dev
 
 The frontend application will run on `http://localhost:5173`.
 
-## Available Scripts
-
 ### Backend (`/backend`)
 
 - `npm run dev`: Starts the server in development mode with nodemon.
