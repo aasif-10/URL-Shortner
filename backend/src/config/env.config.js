@@ -21,12 +21,17 @@ if (!process.env.BASE_URL) {
   throw new Error("BASE_URL is required");
 }
 
+if (!process.env.REDIS_URL) {
+  throw new Error("REDIS_URL is required");
+}
+
 const cfg = {
   NODE_ENV: environment,
   PORT: process.env.PORT,
   DATABASE_URL: process.env.DATABASE_URL,
   JWT_SECRET: process.env.JWT_SECRET,
   BASE_URL: process.env.BASE_URL,
+  REDIS_URL: process.env.REDIS_URL,
 };
 
 export { cfg };
