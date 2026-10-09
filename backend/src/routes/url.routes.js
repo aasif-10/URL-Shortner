@@ -5,6 +5,7 @@ import { AppError } from "../errors/app.error.js";
 import { validateUrl } from "../utils/validate-url.util.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import { cfg } from "../config/env.config.js";
+import { redis } from "../config/redis.config.js";
 
 const router = express.Router();
 
@@ -165,12 +166,15 @@ router.delete("/:id", isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const userId = req.user.userId;
 
-  await prisma.url.delete({
+  const url = await prisma.url.delete({
     where: {
       id: id,
       userId: userId,
     },
   });
+
+  const shortUrlSlug = url.shortUrl.split("/").pop();
+  await redis.del(shortUrlSlug);
 
   req.log.info(`Deleted URL: ${id} for user: ${userId}`);
   res.status(200).json({
@@ -185,6 +189,12 @@ router.delete("/:id", isLoggedIn, async (req, res) => {
  */
 router.get("/:shortUrl", async (req, res) => {
   const { shortUrl } = req.params;
+
+  const originalUrl = await redis.get(shortUrl);
+
+  if (originalUrl) {
+    return res.redirect(originalUrl);
+  }
 
   const url = await prisma.url.findUnique({
     where: {
@@ -203,6 +213,8 @@ router.get("/:shortUrl", async (req, res) => {
     where: { id: url.id },
     data: { clicks: { increment: 1 } },
   });
+
+  await redis.set(shortUrl, longUrl, { EX: 3600 });
 
   req.log.info(`Redirecting to long URL: ${longUrl}`);
   res.redirect(longUrl);
