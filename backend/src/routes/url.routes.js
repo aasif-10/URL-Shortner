@@ -214,7 +214,7 @@ router.get("/:shortUrl", async (req, res) => {
     data: { clicks: { increment: 1 } },
   });
 
-  await redis.set(shortUrl, longUrl, { EX: 3600 });
+  await redis.set(shortUrl, longUrl, "EX", 3600);
 
   req.log.info(`Redirecting to long URL: ${longUrl}`);
   res.redirect(longUrl);

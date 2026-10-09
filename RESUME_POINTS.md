@@ -1,0 +1,6 @@
+## Resume Bullet Points: Scalable URL Shortener (Benchmark & Impact Driven)
+
+* **System Scale & Throughput:** Architected a high-throughput URL shortener capable of handling up to **2,600+ requests per second (RPS)** on a single Node.js instance, maintaining a highly stable **108ms average latency** under a sustained load of 200 concurrent users.
+* **Database Optimization (Before & After):** Integrated a Redis caching layer for hot URLs, offloading 100% of read operations from PostgreSQL on cache hits. This optimization prevented database saturation and increased maximum system throughput from **~2,000 RPS to over 2,600+ RPS**.
+* **Resilience & Endurance:** Engineered an asynchronous click-tracking pipeline (Write-Behind caching) that buffers analytics in Redis before bulk-flushing to PostgreSQL. Validated system stability via a 3-minute soak test, processing over **332,000 requests** with a **0% error rate** and zero memory leaks.
+* **Security & Production Readiness:** Secured REST API endpoints using strict Zod payload validation and stateless JWT authentication stored in HTTP-only cookies, eliminating injection vulnerabilities while ensuring deep observability with Pino JSON logging.

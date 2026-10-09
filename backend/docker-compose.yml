@@ -1,11 +1,12 @@
 services:
   redis:
-    image: resdis:7-alpine
+    image: redis:7-alpine
     container_name: redis
     ports:
       - "6379:6379"
-    command: ["redis-server", "appendonly", "yes"]
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - redis-data: /data
+      - redis-data:/data
 
-volumes: redis-data
+volumes: 
+  redis-data:
