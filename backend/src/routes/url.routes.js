@@ -20,7 +20,22 @@ router.post("/create", isLoggedIn, async (req, res) => {
     throw new AppError("Invalid URL", 400);
   }
 
-  const shortUrl = genShortUrl();
+  let shortUrl = genShortUrl();
+
+  let shortUrlIsExist = await prisma.url.findUnique({
+    where: {
+      shortUrl: `${cfg.BASE_URL}/api/urls/${shortUrl}`,
+    },
+  });
+
+  while (shortUrlIsExist) {
+    shortUrl = genShortUrl();
+    shortUrlIsExist = await prisma.url.findUnique({
+      where: {
+        shortUrl: `${cfg.BASE_URL}/api/urls/${shortUrl}`,
+      },
+    });
+  }
 
   const createdUrl = await prisma.url.create({
     data: {
