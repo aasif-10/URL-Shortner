@@ -1,6 +1,6 @@
-## Resume Bullet Points: Scalable URL Shortener (Benchmark & Impact Driven)
+## Resume Bullet Points: Scalable URL Shortener
 
-* **System Scale & Throughput:** Architected a high-throughput URL shortener capable of handling up to **2,600+ requests per second (RPS)** on a single Node.js instance, maintaining a highly stable **108ms average latency** under a sustained load of 200 concurrent users.
-* **Database Optimization (Before & After):** Integrated a Redis caching layer for hot URLs, offloading 100% of read operations from PostgreSQL on cache hits. This optimization prevented database saturation and increased maximum system throughput from **~2,000 RPS to over 2,600+ RPS**.
-* **Resilience & Endurance:** Engineered an asynchronous click-tracking pipeline (Write-Behind caching) that buffers analytics in Redis before bulk-flushing to PostgreSQL. Validated system stability via a 3-minute soak test, processing over **332,000 requests** with a **0% error rate** and zero memory leaks.
+* **Caching & Performance:** Built a URL shortening service with Redis cache-aside caching, reducing redirect p99 latency from **~1,200 ms** to **~130 ms** at a near **99.9%** cache hit rate under 200 concurrent users.
+* **Secure ID Generation:** Implemented cryptographically secure, 7-character Base62 short-code generation with PostgreSQL unique constraints and a collision-resolution fallback loop to handle concurrent writes safely.
+* **Throughput & Indexing:** Optimized PostgreSQL redirect lookups with B-tree indexing and benchmarked the overall service, sustaining over **2,500** requests/sec at **~130 ms** p99 latency under **200** concurrent users.
 * **Security & Production Readiness:** Secured REST API endpoints using strict Zod payload validation and stateless JWT authentication stored in HTTP-only cookies, eliminating injection vulnerabilities while ensuring deep observability with Pino JSON logging.

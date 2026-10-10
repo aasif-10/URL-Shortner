@@ -9,8 +9,6 @@ The project is structured into two main directories:
 - `backend`: RESTful API server.
 - `frontend`: Single Page Application (SPA) client.
 
-## Features
-
 - **Authentication**: JWT-based user registration and login securely stored in HTTP-only cookies.
 - **URL Management**: Generate short identifiers for long URLs, manage active links.
 - **Validation**: Strict request payload validation using Zod.

@@ -190,7 +190,10 @@ router.delete("/:id", isLoggedIn, async (req, res) => {
 router.get("/:shortUrl", async (req, res) => {
   const { shortUrl } = req.params;
 
-  const originalUrl = await redis.get(shortUrl);
+  let originalUrl = null;
+  if (process.env.USE_REDIS !== 'false') {
+    originalUrl = await redis.get(shortUrl);
+  }
 
   if (originalUrl) {
     return res.redirect(originalUrl);
@@ -214,7 +217,9 @@ router.get("/:shortUrl", async (req, res) => {
     data: { clicks: { increment: 1 } },
   });
 
-  await redis.set(shortUrl, longUrl, "EX", 3600);
+  if (process.env.USE_REDIS !== 'false') {
+    await redis.set(shortUrl, longUrl, "EX", 3600);
+  }
 
   req.log.info(`Redirecting to long URL: ${longUrl}`);
   res.redirect(longUrl);
