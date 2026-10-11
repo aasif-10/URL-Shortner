@@ -2,6 +2,7 @@ import { app } from "./src/app.js";
 import { prisma } from "./src/config/db.config.js";
 import { cfg } from "./src/config/env.config.js";
 import { logger } from "./src/config/logger.config.js";
+import { startClickWorker } from "./src/workers/click.worker.js";
 
 const PORT = cfg.PORT;
 
@@ -9,6 +10,8 @@ const startServer = async () => {
   try {
     await prisma.$connect();
     logger.info("Database connection success");
+
+    startClickWorker();
 
     app.listen(PORT, () => {
       logger.info(`Server running at PORT ${PORT}`);

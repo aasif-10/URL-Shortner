@@ -6,6 +6,7 @@ import { validateUrl } from "../utils/validate-url.util.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import { cfg } from "../config/env.config.js";
 import { redis } from "../config/redis.config.js";
+import { addClickJob } from "../queues/click.queue.js";
 
 const router = express.Router();
 
@@ -190,12 +191,11 @@ router.delete("/:id", isLoggedIn, async (req, res) => {
 router.get("/:shortUrl", async (req, res) => {
   const { shortUrl } = req.params;
 
-  let originalUrl = null;
-  if (process.env.USE_REDIS !== 'false') {
-    originalUrl = await redis.get(shortUrl);
-  }
-
+  const originalUrl = await redis.get(shortUrl);
   if (originalUrl) {
+    addClickJob(shortUrl).catch((err) => {
+      req.log.error({ error: err, shortUrl }, "Failed to enqueue click job");
+    });
     return res.redirect(originalUrl);
   }
 
@@ -211,15 +211,11 @@ router.get("/:shortUrl", async (req, res) => {
   }
 
   const longUrl = url.longUrl;
+  await redis.set(shortUrl, longUrl, "EX", 3600);
 
-  await prisma.url.update({
-    where: { id: url.id },
-    data: { clicks: { increment: 1 } },
+  addClickJob(shortUrl).catch((err) => {
+    req.log.error({ error: err, shortUrl }, "Failed to enqueue click job");
   });
-
-  if (process.env.USE_REDIS !== 'false') {
-    await redis.set(shortUrl, longUrl, "EX", 3600);
-  }
 
   req.log.info(`Redirecting to long URL: ${longUrl}`);
   res.redirect(longUrl);
