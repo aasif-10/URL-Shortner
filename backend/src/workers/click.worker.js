@@ -29,11 +29,14 @@ export const startClickWorker = () => {
         },
       });
     },
-    { connection },
+    {
+      connection,
+      concurrency: 10,
+    },
   );
 
   worker.on("completed", (job) => {
-    logger.info(`Click recorded for URL: ${job.data.shortUrl}`);
+    logger.debug(`Click recorded for URL: ${job.data.shortUrl}`);
   });
 
   worker.on("failed", (job, err) => {

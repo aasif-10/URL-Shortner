@@ -5,7 +5,11 @@ const validate = (schema) => {
     const result = schema.safeParse(req.body);
 
     if (!result.success) {
-      throw new AppError(result.error.message, 400);
+      const errors = result.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      }));
+      throw new AppError("Validation failed", 400, errors);
     }
 
     req.body = result.data;
