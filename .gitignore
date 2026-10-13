@@ -32,6 +32,7 @@ Thumbs.db
 .claude/
 .windsurf/
 skills-lock.json
+AGENTS.md
 
 # Coverage
 coverage/
