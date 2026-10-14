@@ -10,7 +10,7 @@
 [![BullMQ](https://img.shields.io/badge/BullMQ-6.3-CC3534?style=flat-square&logo=npm&logoColor=white)](https://docs.bullmq.io/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=flat-square)](https://opensource.org/licenses/ISC)
 
-A high-performance, full-stack URL shortening platform engineered for sub-millisecond redirection, fault tolerance, and scalable analytics. The application implements a **cache-aside pattern** with Redis to bypass primary database lookups on hot URLs and uses **BullMQ** for asynchronous, background click tracking to keep the critical redirection path entirely non-blocking.
+A high-, full-stack URL shortening platform engineered for sub-millisecond redirection, fault tolerance, and scalable analytics. The application implements a **cache-aside pattern** with Redis to bypass primary database lookups on hot URLs and uses **BullMQ** for asynchronous, background click tracking to keep the critical redirection path entirely non-blocking.
 
 ---
 
