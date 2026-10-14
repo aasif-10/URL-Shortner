@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 
-const environment = process.env.NODE_ENV || "developement";
+const environment = process.env.NODE_ENV || "development";
 config({
   path: `.env.${environment}`,
 });
