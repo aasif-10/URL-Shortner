@@ -10,7 +10,7 @@
 [![BullMQ](https://img.shields.io/badge/BullMQ-6.3-CC3534?style=flat-square&logo=npm&logoColor=white)](https://docs.bullmq.io/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=flat-square)](https://opensource.org/licenses/ISC)
 
-A high-, full-stack URL shortening platform engineered for sub-millisecond redirection, fault tolerance, and scalable analytics. The application implements a **cache-aside pattern** with Redis to bypass primary database lookups on hot URLs and uses **BullMQ** for asynchronous, background click tracking to keep the critical redirection path entirely non-blocking.
+A high-performance, full-stack URL shortening platform engineered for sub-millisecond redirection, fault tolerance, and scalable analytics. The application implements a **cache-aside pattern** with Redis to bypass primary database lookups on hot URLs and uses **BullMQ** for asynchronous, background click tracking to keep the critical redirection path entirely non-blocking.
 
 ---
 
@@ -175,59 +175,65 @@ erDiagram
 
 ### Backend Stack
 
-| Category | Technology | Version | Purpose / Architecture Role |
-|---|---|---|---|
-| **Runtime** | [Node.js](https://nodejs.org/) | v18+ (ESM) | Native ECMAScript Modules runtime environment |
-| **Web Framework** | [Express](https://expressjs.com/) | 5.2 | REST API router and HTTP server foundation |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) | 16+ | Relational primary data store for users and link mappings |
-| **ORM & Driver** | [Prisma](https://www.prisma.io/) + `@prisma/adapter-pg` | 7.10 | Type-safe schema definition, migrations, and PostgreSQL adapter |
-| **In-Memory Cache** | [Redis](https://redis.io/) / [ioredis](https://github.com/redis/ioredis) | 7.0 / 6.0 | Sub-millisecond lookup cache for redirect resolution |
-| **Task Queue** | [BullMQ](https://docs.bullmq.io/) | 6.3 | Persistent job queue for background asynchronous click tracking |
-| **Authentication** | [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) & [bcrypt](https://github.com/kelektiv/node.bcrypt.js) | 9.0 / 6.0 | Stateless dual-token JWT signing and credential hashing |
-| **Validation** | [Zod](https://zod.dev/) | 4.6 | Schema-based request body validation middleware |
-| **Logging** | [Pino](https://getpino.io/) + [pino-http](https://github.com/pinojs/pino-http) | 10.3 / 11.0 | Fast structured JSON logging with header redaction |
-| **Key Generation** | [nanoid](https://github.com/ai/nanoid) | 6.0 | Compact, collision-resistant URL slug generator |
+| Category            | Technology                                                                                                        | Version     | Purpose / Architecture Role                                     |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------- |
+| **Runtime**         | [Node.js](https://nodejs.org/)                                                                                    | v18+ (ESM)  | Native ECMAScript Modules runtime environment                   |
+| **Web Framework**   | [Express](https://expressjs.com/)                                                                                 | 5.2         | REST API router and HTTP server foundation                      |
+| **Database**        | [PostgreSQL](https://www.postgresql.org/)                                                                         | 16+         | Relational primary data store for users and link mappings       |
+| **ORM & Driver**    | [Prisma](https://www.prisma.io/) + `@prisma/adapter-pg`                                                           | 7.10        | Type-safe schema definition, migrations, and PostgreSQL adapter |
+| **In-Memory Cache** | [Redis](https://redis.io/) / [ioredis](https://github.com/redis/ioredis)                                          | 7.0 / 6.0   | Sub-millisecond lookup cache for redirect resolution            |
+| **Task Queue**      | [BullMQ](https://docs.bullmq.io/)                                                                                 | 6.3         | Persistent job queue for background asynchronous click tracking |
+| **Authentication**  | [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) & [bcrypt](https://github.com/kelektiv/node.bcrypt.js) | 9.0 / 6.0   | Stateless dual-token JWT signing and credential hashing         |
+| **Validation**      | [Zod](https://zod.dev/)                                                                                           | 4.6         | Schema-based request body validation middleware                 |
+| **Logging**         | [Pino](https://getpino.io/) + [pino-http](https://github.com/pinojs/pino-http)                                    | 10.3 / 11.0 | Fast structured JSON logging with header redaction              |
+| **Key Generation**  | [nanoid](https://github.com/ai/nanoid)                                                                            | 6.0         | Compact, collision-resistant URL slug generator                 |
 
 ### Frontend Stack
 
-| Category | Technology | Version | Purpose / Architecture Role |
-|---|---|---|---|
-| **UI Framework** | [React](https://react.dev/) | 19.2 | Declarative component UI library |
-| **Build & Tooling** | [Vite](https://vitejs.dev/) | 8.3 | Lightning-fast development server and optimized rollup bundler |
-| **Client Routing** | [React Router DOM](https://reactrouter.com/) | 7.18 | Single Page Application route navigation and auth guard wrappers |
-| **HTTP Client** | [Axios](https://axios-http.com/) | 1.20 | Promise-based HTTP client configured with cookie credentials |
-| **Code Quality** | [ESLint](https://eslint.org/) | 10.10 | Code consistency and static analysis |
+| Category            | Technology                                   | Version | Purpose / Architecture Role                                      |
+| ------------------- | -------------------------------------------- | ------- | ---------------------------------------------------------------- |
+| **UI Framework**    | [React](https://react.dev/)                  | 19.2    | Declarative component UI library                                 |
+| **Build & Tooling** | [Vite](https://vitejs.dev/)                  | 8.3     | Lightning-fast development server and optimized rollup bundler   |
+| **Client Routing**  | [React Router DOM](https://reactrouter.com/) | 7.18    | Single Page Application route navigation and auth guard wrappers |
+| **HTTP Client**     | [Axios](https://axios-http.com/)             | 1.20    | Promise-based HTTP client configured with cookie credentials     |
+| **Code Quality**    | [ESLint](https://eslint.org/)                | 10.10   | Code consistency and static analysis                             |
 
 ---
 
 ## Key Design Decisions
 
 ### 1. Cache-Aside Pattern with Automatic TTL
+
 - **Why**: Under heavy traffic spikes, database lookups on the `/api/urls/:shortUrl` endpoint can become a major bottleneck.
 - **Implementation**: The redirect route checks Redis first using the short code key. On a cache hit, the redirection response is sent immediately. On a cache miss, PostgreSQL is queried, and the result is stored in Redis with an `EX 3600` (1 hour) expiration.
 - **Cache Invalidation**: When a user deletes a URL via `DELETE /api/urls/:id`, the key is immediately evicted from Redis (`redis.del`), guaranteeing stale URLs cannot be resolved.
 
 ### 2. Decoupled Click Analytics via BullMQ
+
 - **Why**: Performing a database write (`UPDATE Url SET clicks = clicks + 1`) during a user's redirect introduces latency and locks database rows under high concurrency.
 - **Implementation**: Redirect handlers dispatch a fire-and-forget job (`addClickJob`) into BullMQ's `click-events` queue. A dedicated background worker process consumes jobs with a concurrency setting of 10.
 - **Resilience**: Configured with 3 attempts and exponential backoff (`delay: 1000ms`), with `removeOnFail: 100` so failures can be inspected without data loss.
 
 ### 3. Collision-Safe Short Code Generation
+
 - **Why**: Distributed systems generating short codes risk collision if codes overlap.
 - **Implementation**: 7-character Base62 alphanumeric IDs are generated with `nanoid`. Before insertion, the system verifies uniqueness, regenerating if a duplicate exists. Furthermore, a strict PostgreSQL `UNIQUE` constraint on `shortUrl` ensures race condition safety at the database tier.
 
 ### 4. Dual-Token Authentication with Hashed Storage
+
 - **Why**: Prevents stolen refresh tokens from compromising long-term access while maintaining short access token validity.
-- **Implementation**: 
+- **Implementation**:
   - **Access Token**: 5-minute lifespan, transmitted via `httpOnly` secure cookies.
   - **Refresh Token**: 5-day lifespan. Critically, only the **bcrypt hash** of the refresh token is stored in the database (`User.refreshToken`), ensuring database leaks do not expose valid refresh credentials.
   - **Logout**: Invalidates the refresh token in the database and clears the client cookie.
 
 ### 5. Structured Logging & Secret Redaction
+
 - **Why**: Production logs must be machine-parseable while preventing credential leaks.
 - **Implementation**: `pino-http` emits structured JSON logs. Automatic redaction masks `req.headers.authorization` and `req.headers.cookie`. Routine health check requests (`/healthz`) are filtered from access logs to prevent log flooding.
 
 ### 6. Relational Indexing Strategy
+
 - **Why**: Users frequently query lists and aggregated analytics of their own URLs.
 - **Implementation**: An explicit index (`@@index([userId])`) is placed on the `Url` table in Prisma to keep queries like `WHERE userId = ?` performing at $O(\log N)$ rather than scanning the full table.
 
@@ -298,32 +304,32 @@ URL-Shortener/
 
 Base path: `/api/auth`
 
-| Method | Endpoint | Access | Request Body | Description |
-|---|---|---|---|---|
-| `POST` | `/register` | Public | `{ name, email, password }` | Registers user, hashes password, sets access cookie, returns user & refresh token |
-| `POST` | `/login` | Public | `{ email, password }` | Verifies credentials, sets access cookie, returns user & refresh token |
-| `POST` | `/refresh` | Public | `{ refreshToken }` | Validates refresh token against hashed DB record and issues new access token |
-| `GET` | `/logout` | Authenticated | None | Clears access cookie and nullifies stored refresh token |
-| `GET` | `/get-me` | Authenticated | None | Returns the currently authenticated user profile |
+| Method | Endpoint    | Access        | Request Body                | Description                                                                       |
+| ------ | ----------- | ------------- | --------------------------- | --------------------------------------------------------------------------------- |
+| `POST` | `/register` | Public        | `{ name, email, password }` | Registers user, hashes password, sets access cookie, returns user & refresh token |
+| `POST` | `/login`    | Public        | `{ email, password }`       | Verifies credentials, sets access cookie, returns user & refresh token            |
+| `POST` | `/refresh`  | Public        | `{ refreshToken }`          | Validates refresh token against hashed DB record and issues new access token      |
+| `GET`  | `/logout`   | Authenticated | None                        | Clears access cookie and nullifies stored refresh token                           |
+| `GET`  | `/get-me`   | Authenticated | None                        | Returns the currently authenticated user profile                                  |
 
 ### URL Management & Redirection
 
 Base path: `/api/urls`
 
-| Method | Endpoint | Access | Parameters / Body | Description |
-|---|---|---|---|---|
-| `POST` | `/create` | Authenticated | Body: `{ url: string }` | Generates a 7-character short URL code |
-| `POST` | `/create/:slug` | Authenticated | Param: `slug`<br>Body: `{ url: string }` | Creates a custom slug short URL |
-| `GET` | `/` | Authenticated | None | Retrieves all shortened URLs belonging to the authenticated user |
-| `GET` | `/stats` | Authenticated | None | Returns aggregated `{ totalClicks, totalLinks }` for the user |
-| `DELETE` | `/:id` | Authenticated | Param: `id` (UUID) | Deletes URL record and invalidates corresponding Redis cache |
-| `GET` | `/:shortUrl` | Public | Param: `shortUrl` (Slug) | **Redirect endpoint**: Resolves URL via cache/DB, triggers async analytics, redirects (302) |
+| Method   | Endpoint        | Access        | Parameters / Body                        | Description                                                                                 |
+| -------- | --------------- | ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `POST`   | `/create`       | Authenticated | Body: `{ url: string }`                  | Generates a 7-character short URL code                                                      |
+| `POST`   | `/create/:slug` | Authenticated | Param: `slug`<br>Body: `{ url: string }` | Creates a custom slug short URL                                                             |
+| `GET`    | `/`             | Authenticated | None                                     | Retrieves all shortened URLs belonging to the authenticated user                            |
+| `GET`    | `/stats`        | Authenticated | None                                     | Returns aggregated `{ totalClicks, totalLinks }` for the user                               |
+| `DELETE` | `/:id`          | Authenticated | Param: `id` (UUID)                       | Deletes URL record and invalidates corresponding Redis cache                                |
+| `GET`    | `/:shortUrl`    | Public        | Param: `shortUrl` (Slug)                 | **Redirect endpoint**: Resolves URL via cache/DB, triggers async analytics, redirects (302) |
 
 ### System Health
 
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `GET` | `/healthz` | Public | Returns `200 OK` status. Excluded from access logs. |
+| Method | Endpoint   | Access | Description                                         |
+| ------ | ---------- | ------ | --------------------------------------------------- |
+| `GET`  | `/healthz` | Public | Returns `200 OK` status. Excluded from access logs. |
 
 ---
 
@@ -332,6 +338,7 @@ Base path: `/api/urls`
 ### Prerequisites
 
 Ensure you have the following installed locally:
+
 - [Node.js](https://nodejs.org/) v18.0.0 or higher
 - [Docker & Docker Compose](https://www.docker.com/) (for running Redis)
 - [PostgreSQL](https://www.postgresql.org/) v14+ database instance (local or hosted e.g. Supabase, Neon)
@@ -421,20 +428,20 @@ The frontend application will be accessible at **`http://localhost:5173`**.
 
 ### Backend (`/backend`)
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Runs backend in development mode with nodemon and `NODE_ENV=development` |
-| `npm start` | Runs backend in production mode with `NODE_ENV=production` |
-| `npm run postinstall` | Automatically executes `npx prisma generate` after package installation |
+| Command               | Description                                                              |
+| --------------------- | ------------------------------------------------------------------------ |
+| `npm run dev`         | Runs backend in development mode with nodemon and `NODE_ENV=development` |
+| `npm start`           | Runs backend in production mode with `NODE_ENV=production`               |
+| `npm run postinstall` | Automatically executes `npx prisma generate` after package installation  |
 
 ### Frontend (`/frontend`)
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Starts local Vite dev server with hot module replacement (HMR) |
-| `npm run build` | Compiles and minifies React application into production assets (`/dist`) |
-| `npm run preview` | Locally serves production build for testing |
-| `npm run lint` | Runs ESLint across all JavaScript/JSX source files |
+| Command           | Description                                                              |
+| ----------------- | ------------------------------------------------------------------------ |
+| `npm run dev`     | Starts local Vite dev server with hot module replacement (HMR)           |
+| `npm run build`   | Compiles and minifies React application into production assets (`/dist`) |
+| `npm run preview` | Locally serves production build for testing                              |
+| `npm run lint`    | Runs ESLint across all JavaScript/JSX source files                       |
 
 ---
 
@@ -442,21 +449,21 @@ The frontend application will be accessible at **`http://localhost:5173`**.
 
 ### Backend Configuration (`backend/.env.development` / `backend/.env.production`)
 
-| Variable | Type | Required | Description | Example |
-|---|---|---|---|---|
-| `PORT` | Number | Yes | Port where the Express API server listens | `3000` |
-| `NODE_ENV` | String | Yes | Runtime environment mode | `development` / `production` |
-| `JWT_SECRET` | String | Yes | Secret signing key for Access and Refresh tokens | `your_secret_key` |
-| `BASE_URL` | String | Yes | Fully-qualified public URL used to form short links | `http://localhost:3000` |
-| `DATABASE_URL` | String | Yes | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `REDIS_URL` | String | Yes | Redis connection URI | `redis://localhost:6379` |
+| Variable       | Type   | Required | Description                                         | Example                               |
+| -------------- | ------ | -------- | --------------------------------------------------- | ------------------------------------- |
+| `PORT`         | Number | Yes      | Port where the Express API server listens           | `3000`                                |
+| `NODE_ENV`     | String | Yes      | Runtime environment mode                            | `development` / `production`          |
+| `JWT_SECRET`   | String | Yes      | Secret signing key for Access and Refresh tokens    | `your_secret_key`                     |
+| `BASE_URL`     | String | Yes      | Fully-qualified public URL used to form short links | `http://localhost:3000`               |
+| `DATABASE_URL` | String | Yes      | PostgreSQL connection string                        | `postgresql://user:pass@host:5432/db` |
+| `REDIS_URL`    | String | Yes      | Redis connection URI                                | `redis://localhost:6379`              |
 
 ### Frontend Configuration (`frontend/.env.development` / `frontend/.env.production`)
 
-| Variable | Type | Required | Description | Example |
-|---|---|---|---|---|
-| `VITE_BASE_URL` | String | Yes | Public URL of the frontend application | `http://localhost:5173` |
-| `VITE_API_BASE_URL` | String | Yes | Target backend API base URL | `http://localhost:3000` |
+| Variable            | Type   | Required | Description                            | Example                 |
+| ------------------- | ------ | -------- | -------------------------------------- | ----------------------- |
+| `VITE_BASE_URL`     | String | Yes      | Public URL of the frontend application | `http://localhost:5173` |
+| `VITE_API_BASE_URL` | String | Yes      | Target backend API base URL            | `http://localhost:3000` |
 
 ---
 
