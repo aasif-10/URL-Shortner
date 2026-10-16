@@ -14,7 +14,7 @@ A high-performance, full-stack URL shortening platform engineered for sub-millis
 
 ---
 
-## Table of Contents
+## Table of Content
 
 - [Features](#features)
 - [System Architecture](#system-architecture)
