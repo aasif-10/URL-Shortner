@@ -1,4 +1,4 @@
-# URL Shortener
+# URL Shortene
 
 [![Node.js](https://img.shields.io/badge/Node.js-v18+-68A063?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5.2-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
