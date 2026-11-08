@@ -34,4 +34,4 @@ const cfg = {
   REDIS_URL: process.env.REDIS_URL,
 };
 
-
+export { cfg };
